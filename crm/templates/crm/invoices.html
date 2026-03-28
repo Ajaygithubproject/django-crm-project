@@ -1,0 +1,98 @@
+{% extends 'crm/base.html' %}
+{% block title %}Invoices — ImmigrateCRM{% endblock %}
+{% block page_title %}Invoice Management{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <div class="section-title">Invoices ({{ invoices|length }})</div>
+  <button class="btn btn-primary" onclick="document.getElementById('addInvModal').style.display='flex'">+ Create Invoice</button>
+</div>
+
+<div class="table-card">
+  <div class="table-toolbar">
+    <form method="get" style="display:flex;gap:10px;flex:1;">
+      <input class="search-input" name="q" value="{{ q }}" placeholder="🔍 Search invoice no, candidate, domain...">
+      <button type="submit" class="btn btn-secondary btn-sm">Search</button>
+      {% if q %}<a href="{% url 'invoices' %}" class="btn btn-secondary btn-sm">✕ Clear</a>{% endif %}
+    </form>
+    <a href="{% url 'export_excel' %}" class="btn btn-secondary btn-sm">⬇ Export</a>
+  </div>
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr><th>Invoice #</th><th>Candidate / Client</th><th>Domain</th><th>Amount</th><th>Status</th><th>Date</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for inv in invoices %}
+        <tr>
+          <td class="mono fw-bold">{{ inv.invoice_number }}</td>
+          <td>{% if inv.candidate %}<a href="{% url 'candidate_view' inv.candidate.pk %}" style="color:var(--accent);">{{ inv.candidate.name }}</a>{% else %}—{% endif %}</td>
+          <td>{{ inv.domain }}</td>
+          <td class="fw-bold">₹{{ inv.amount|floatformat:0 }}</td>
+          <td><span class="badge badge-{{ inv.status|lower }}">{{ inv.status }}</span></td>
+          <td style="font-size:12px;">{{ inv.date }}</td>
+          <td style="white-space:nowrap;">
+            {% if inv.status == 'Pending' %}
+            <a href="{% url 'invoice_mark_paid' inv.pk %}" class="btn btn-success btn-sm"
+               onclick="return confirm('Mark as Cleared?')">✔ Mark Paid</a>
+            {% endif %}
+            <a href="{% url 'invoice_delete' inv.pk %}" class="btn btn-danger btn-sm"
+               onclick="return confirm('Delete this invoice?')">🗑</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7"><div class="empty-state"><div class="empty-icon">🧾</div><p>No invoices yet.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addInvModal" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">Create Invoice</div>
+      <button class="modal-close" onclick="document.getElementById('addInvModal').style.display='none'">✕</button>
+    </div>
+    <form method="post" action="{% url 'invoice_add' %}">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div class="form-row" style="margin-bottom:14px;">
+          <div><label class="form-label">Invoice # *</label>
+            <input class="form-control" name="invoice_number" placeholder="INV-001" required></div>
+          <div><label class="form-label">Domain</label>
+            <select class="form-select" name="domain">
+              {% for val,lbl in form.fields.domain.choices %}<option value="{{ val }}">{{ lbl }}</option>{% endfor %}
+            </select></div>
+        </div>
+        <div class="form-row" style="margin-bottom:14px;">
+          <div><label class="form-label">Candidate / Client</label>
+            <select class="form-select" name="candidate">
+              <option value="">-- Select (optional) --</option>
+              {% for c in form.candidate.field.queryset %}<option value="{{ c.pk }}">{{ c.name }}</option>{% endfor %}
+            </select></div>
+          <div><label class="form-label">Amount (₹) *</label>
+            <input class="form-control" name="amount" type="number" placeholder="0" required></div>
+        </div>
+        <div class="form-row" style="margin-bottom:14px;">
+          <div><label class="form-label">Date *</label>
+            <input class="form-control" name="date" type="date" value="{% now 'Y-m-d' %}" required></div>
+          <div><label class="form-label">Status</label>
+            <select class="form-select" name="status">
+              <option>Pending</option><option>Cleared</option>
+            </select></div>
+        </div>
+        <div><label class="form-label">Description</label>
+          <textarea class="form-control" name="description" rows="2" placeholder="Invoice description..."></textarea></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('addInvModal').style.display='none'">Cancel</button>
+        <button type="submit" class="btn btn-primary">💾 Save Invoice</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>document.getElementById('addInvModal').addEventListener('click',function(e){if(e.target===this)this.style.display='none';});</script>
+{% endblock %}

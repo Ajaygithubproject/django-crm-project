@@ -1,0 +1,96 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}ImmigrateCRM{% endblock %}</title>
+<link rel="stylesheet" href="{% static 'crm/css/style.css' %}">
+{% block extra_css %}{% endblock %}
+</head>
+<body>
+<div class="app-shell">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-brand">✈ ImmigrateCRM</div>
+      <div class="sidebar-role">{{ request.user.username|title }} Panel</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Overview</div>
+      <a href="{% url 'dashboard' %}" class="nav-item {% if page == 'dashboard' %}active{% endif %}">
+        <span class="nav-icon">📊</span>Dashboard
+      </a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Operations</div>
+      <a href="{% url 'candidates' %}" class="nav-item {% if page == 'candidates' %}active{% endif %}">
+        <span class="nav-icon">👤</span>Candidates
+      </a>
+      <a href="{% url 'applications' %}" class="nav-item {% if page == 'applications' %}active{% endif %}">
+        <span class="nav-icon">📋</span>Applications
+      </a>
+      <a href="{% url 'documents' %}" class="nav-item {% if page == 'documents' %}active{% endif %}">
+        <span class="nav-icon">📁</span>Documents
+      </a>
+      <a href="{% url 'courier' %}" class="nav-item {% if page == 'courier' %}active{% endif %}">
+        <span class="nav-icon">📦</span>Courier Register
+      </a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Finance</div>
+      <a href="{% url 'payments' %}" class="nav-item {% if page == 'payments' %}active{% endif %}">
+        <span class="nav-icon">💰</span>Payments
+      </a>
+      <a href="{% url 'invoices' %}" class="nav-item {% if page == 'invoices' %}active{% endif %}">
+        <span class="nav-icon">🧾</span>Invoices
+      </a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Legal & B2B</div>
+      <a href="{% url 'legal' %}" class="nav-item {% if page == 'legal' %}active{% endif %}">
+        <span class="nav-icon">⚖️</span>Legal & Compliance
+      </a>
+      <a href="{% url 'b2b' %}" class="nav-item {% if page == 'b2b' %}active{% endif %}">
+        <span class="nav-icon">🏢</span>B2B Clients
+      </a>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">{{ request.user.username|slice:":1"|upper }}</div>
+        <div>
+          <div class="user-name">{{ request.user.username|title }}</div>
+          <a href="{% url 'logout' %}" style="font-size:11px;color:var(--muted);">Logout</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-title">{% block page_title %}Dashboard{% endblock %}</div>
+      <div class="topbar-actions">
+        <a href="{% url 'export_excel' %}" class="btn btn-secondary btn-sm">⬇ Export Excel</a>
+        <form method="post" action="{% url 'import_excel' %}" enctype="multipart/form-data" style="display:inline">
+          {% csrf_token %}
+          <label class="btn btn-warning btn-sm" style="cursor:pointer">
+            ⬆ Import Excel
+            <input type="file" name="excel_file" accept=".xlsx,.xls" style="display:none" onchange="this.form.submit()">
+          </label>
+        </form>
+      </div>
+    </div>
+
+    <div class="page-content">
+      {% for message in messages %}
+        <div class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</div>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

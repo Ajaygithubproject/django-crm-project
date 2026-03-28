@@ -1,0 +1,128 @@
+{% extends 'crm/base.html' %}
+{% block title %}Edit {{ candidate.name }} — ImmigrateCRM{% endblock %}
+{% block page_title %}Edit Candidate{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:16px;">
+  <a href="{% url 'candidate_view' candidate.pk %}" class="btn btn-secondary btn-sm">← Back to Profile</a>
+</div>
+
+<div class="table-card" style="max-width:900px;">
+  <div class="modal-header" style="border-radius:12px 12px 0 0;">
+    <div class="modal-title">✏️ Edit — {{ candidate.name }}</div>
+  </div>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="modal-body">
+
+      <div class="form-section-title">👤 Basic Information</div>
+      <div class="form-row" style="margin-bottom:14px;">
+        <div><label class="form-label">1. Candidate Name *</label>
+          <input class="form-control" name="name" value="{{ candidate.name }}" required></div>
+        <div><label class="form-label">2. Phone *</label>
+          <input class="form-control" name="phone" value="{{ candidate.phone }}" required></div>
+      </div>
+      <div class="form-row" style="margin-bottom:14px;">
+        <div><label class="form-label">3. Passport Number</label>
+          <input class="form-control" name="passport_number" value="{{ candidate.passport_number }}"></div>
+        <div><label class="form-label">4. Country</label>
+          <input class="form-control" name="country" value="{{ candidate.country }}"></div>
+      </div>
+      <div class="form-row" style="margin-bottom:14px;">
+        <div><label class="form-label">5. Position</label>
+          <input class="form-control" name="position" value="{{ candidate.position }}"></div>
+        <div><label class="form-label">6. Experience</label>
+          <input class="form-control" name="experience" value="{{ candidate.experience }}"></div>
+      </div>
+
+      <div class="form-section-title">📋 Status Tracking</div>
+      <div class="form-row" style="margin-bottom:14px;">
+        <div><label class="form-label">7. Status</label>
+          <select class="form-select" name="status">
+            {% for val,label in form.fields.status.choices %}
+              <option value="{{ val }}" {% if candidate.status == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select></div>
+        <div><label class="form-label">8. Medical Status</label>
+          <select class="form-select" name="medical_status">
+            {% for val,label in form.fields.medical_status.choices %}
+              <option value="{{ val }}" {% if candidate.medical_status == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select></div>
+      </div>
+      <div class="form-row" style="margin-bottom:14px;">
+        <div><label class="form-label">9. Visa Status</label>
+          <select class="form-select" name="visa_status">
+            {% for val,label in form.fields.visa_status.choices %}
+              <option value="{{ val }}" {% if candidate.visa_status == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select></div>
+        <div><label class="form-label">10. Ticket Status</label>
+          <select class="form-select" name="ticket_status">
+            {% for val,label in form.fields.ticket_status.choices %}
+              <option value="{{ val }}" {% if candidate.ticket_status == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select></div>
+      </div>
+
+      <div class="form-section-title">💰 Finance & Documents</div>
+      <div class="form-row" style="margin-bottom:14px;">
+        <div><label class="form-label">11. Payment (₹)</label>
+          <input class="form-control" name="payment" type="number" value="{{ candidate.payment }}"></div>
+        <div><label class="form-label">16. Reference</label>
+          <input class="form-control" name="reference" value="{{ candidate.reference }}"></div>
+      </div>
+      <div class="form-row" style="margin-bottom:14px;">
+        <div><label class="form-label">12. Resume Status</label>
+          <select class="form-select" name="resume_status">
+            {% for val,label in form.fields.resume_status.choices %}
+              <option value="{{ val }}" {% if candidate.resume_status == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select></div>
+        <div><label class="form-label">13. Passport Copy</label>
+          <select class="form-select" name="passport_copy_status">
+            {% for val,label in form.fields.passport_copy_status.choices %}
+              <option value="{{ val }}" {% if candidate.passport_copy_status == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select></div>
+      </div>
+      <div class="form-row" style="margin-bottom:14px;">
+        <div><label class="form-label">14. Offer Letter</label>
+          <select class="form-select" name="offer_letter_status">
+            {% for val,label in form.fields.offer_letter_status.choices %}
+              <option value="{{ val }}" {% if candidate.offer_letter_status == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select></div>
+        <div><label class="form-label">15. Travel Date</label>
+          <input class="form-control" name="travel_date" type="date" value="{{ candidate.travel_date|date:'Y-m-d' }}"></div>
+      </div>
+
+      <div class="form-section-title">🗂 Admin & Follow-up</div>
+      <div class="form-row" style="margin-bottom:14px;">
+        <div><label class="form-label">17. Remarks</label>
+          <textarea class="form-control" name="remarks">{{ candidate.remarks }}</textarea></div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div><label class="form-label">18. Follow-up Date</label>
+            <input class="form-control" name="followup_date" type="date" value="{{ candidate.followup_date|date:'Y-m-d' }}"></div>
+          <div><label class="form-label">19. Staff Name</label>
+            <input class="form-control" name="staff_name" value="{{ candidate.staff_name }}"></div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div><label class="form-label">20. Registration Date</label>
+          <input class="form-control" name="registration_date" type="date" value="{{ candidate.registration_date|date:'Y-m-d' }}"></div>
+        <div><label class="form-label">Candidate Type</label>
+          <select class="form-select" name="candidate_type">
+            {% for val,label in form.fields.candidate_type.choices %}
+              <option value="{{ val }}" {% if candidate.candidate_type == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <a href="{% url 'candidate_view' candidate.pk %}" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

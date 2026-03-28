@@ -1,0 +1,257 @@
+{% extends 'crm/base.html' %}
+{% block title %}Candidates — ImmigrateCRM{% endblock %}
+{% block page_title %}Candidate Master{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <div class="section-title">Candidate Master ({{ candidates|length }})</div>
+  <button class="btn btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
+    + Add Candidate
+  </button>
+</div>
+
+<div class="table-card">
+  <div class="table-toolbar">
+    <form method="get" style="display:flex;gap:10px;flex:1;flex-wrap:wrap;">
+      <input class="search-input" name="q" value="{{ q }}" placeholder="🔍 Search name, phone, country, position...">
+      <button type="submit" class="btn btn-secondary btn-sm">Search</button>
+      {% if q %}<a href="{% url 'candidates' %}" class="btn btn-secondary btn-sm">✕ Clear</a>{% endif %}
+    </form>
+    <a href="{% url 'export_excel' %}" class="btn btn-secondary btn-sm">⬇ Export</a>
+  </div>
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Phone</th>
+          <th>Country</th>
+          <th>Position</th>
+          <th>Status</th>
+          <th>Medical</th>
+          <th>Visa</th>
+          <th>Ticket</th>
+          <th>Follow-up</th>
+          <th>Staff</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in candidates %}
+        <tr>
+          <td class="text-muted">{{ forloop.counter }}</td>
+          <td>
+            <strong>{{ c.name }}</strong>
+            {% if c.passport_number %}
+              <br><span class="mono text-muted">🛂 {{ c.passport_number }}</span>
+            {% endif %}
+          </td>
+          <td>{{ c.phone|default:"—" }}</td>
+          <td>{{ c.country|default:"—" }}</td>
+          <td>
+            {{ c.position|default:"—" }}
+            {% if c.experience %}<br><span class="text-muted" style="font-size:11px">{{ c.experience }}</span>{% endif %}
+          </td>
+          <td><span class="badge badge-{{ c.status|lower|slugify }}">{{ c.status }}</span></td>
+          <td><span class="badge badge-{{ c.medical_status|lower|slugify }}">{{ c.medical_status }}</span></td>
+          <td><span class="badge badge-{{ c.visa_status|lower|slugify }}">{{ c.visa_status }}</span></td>
+          <td><span class="badge badge-{{ c.ticket_status|lower|slugify }}">{{ c.ticket_status }}</span></td>
+          <td class="{% if c.followup_date %}text-gold{% else %}text-muted{% endif %}" style="font-size:12px;">
+            {{ c.followup_date|default:"—" }}
+          </td>
+          <td style="font-size:12px;">{{ c.staff_name|default:"—" }}</td>
+          <td style="white-space:nowrap;">
+            <a href="{% url 'candidate_view' c.pk %}" class="btn btn-primary btn-sm">👁 View</a>
+            <a href="{% url 'candidate_edit' c.pk %}" class="btn btn-secondary btn-sm">✏️</a>
+            <a href="{% url 'candidate_delete' c.pk %}"
+               class="btn btn-danger btn-sm"
+               onclick="return confirm('Delete {{ c.name }}?')">🗑</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="12">
+            <div class="empty-state">
+              <div class="empty-icon">👤</div>
+              <p>No candidates yet. Click <strong>+ Add Candidate</strong> to get started.</p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── ADD CANDIDATE MODAL ── -->
+<div class="modal-overlay" id="addModal" style="display:none;">
+  <div class="modal-box" style="max-width:780px;">
+    <div class="modal-header">
+      <div class="modal-title">➕ Add Candidate</div>
+      <button class="modal-close" onclick="document.getElementById('addModal').style.display='none'">✕</button>
+    </div>
+    <form method="post" action="{% url 'candidate_add' %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="modal-body">
+
+        <div class="form-section-title">👤 Basic Information</div>
+        <div class="form-row" style="margin-bottom:14px;">
+          <div>
+            <label class="form-label">1. Candidate Name *</label>
+            <input class="form-control" name="name" placeholder="Full name" required>
+          </div>
+          <div>
+            <label class="form-label">2. Phone *</label>
+            <input class="form-control" name="phone" placeholder="+91 XXXXX XXXXX" required>
+          </div>
+        </div>
+        <div class="form-row" style="margin-bottom:14px;">
+          <div>
+            <label class="form-label">3. Passport Number</label>
+            <input class="form-control" name="passport_number" placeholder="e.g. P1234567">
+          </div>
+          <div>
+            <label class="form-label">4. Country (Destination)</label>
+            <input class="form-control" name="country" placeholder="e.g. Qatar, UAE, Canada">
+          </div>
+        </div>
+        <div class="form-row" style="margin-bottom:14px;">
+          <div>
+            <label class="form-label">5. Position / Job Role</label>
+            <input class="form-control" name="position" placeholder="e.g. Electrician, Nurse, Driver">
+          </div>
+          <div>
+            <label class="form-label">6. Experience</label>
+            <input class="form-control" name="experience" placeholder="e.g. 3 years, Fresher">
+          </div>
+        </div>
+
+        <div class="form-section-title">📋 Status Tracking</div>
+        <div class="form-row" style="margin-bottom:14px;">
+          <div>
+            <label class="form-label">7. Status</label>
+            <select class="form-select" name="status">
+              <option>New</option><option>Documents Pending</option><option>Processing</option>
+              <option>Visa Applied</option><option>Approved</option><option>Ticket Booked</option>
+              <option>Boarded</option><option>Cancelled</option><option>Refunded</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">8. Medical Status</label>
+            <select class="form-select" name="medical_status">
+              <option>Pending</option><option>Fit</option><option>Unfit</option>
+              <option>Awaiting Report</option><option>Done</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row" style="margin-bottom:14px;">
+          <div>
+            <label class="form-label">9. Visa Status</label>
+            <select class="form-select" name="visa_status">
+              <option>Not Applied</option><option>Applied</option><option>Approved</option>
+              <option>Rejected</option><option>On Hold</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">10. Ticket Status</label>
+            <select class="form-select" name="ticket_status">
+              <option>Not Booked</option><option>Booked</option><option>Confirmed</option><option>Cancelled</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section-title">💰 Finance & Documents</div>
+        <div class="form-row" style="margin-bottom:14px;">
+          <div>
+            <label class="form-label">11. Payment (₹)</label>
+            <input class="form-control" name="payment" type="number" placeholder="0" min="0">
+          </div>
+          <div>
+            <label class="form-label">16. Reference</label>
+            <input class="form-control" name="reference" placeholder="Referred by / Source">
+          </div>
+        </div>
+        <div class="form-row" style="margin-bottom:14px;">
+          <div>
+            <label class="form-label">12. Resume</label>
+            <select class="form-select" name="resume_status">
+              <option>Not Received</option><option>Received</option><option>Uploaded</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Resume File (optional)</label>
+            <input class="form-control" name="resume_file" type="file" accept=".pdf,.doc,.docx">
+          </div>
+        </div>
+        <div class="form-row" style="margin-bottom:14px;">
+          <div>
+            <label class="form-label">13. Passport Copy</label>
+            <select class="form-select" name="passport_copy_status">
+              <option>Not Received</option><option>Soft Copy</option><option>Original</option><option>Both</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">14. Offer Letter</label>
+            <select class="form-select" name="offer_letter_status">
+              <option>Not Received</option><option>Received</option><option>Signed</option><option>Sent to Candidate</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row" style="margin-bottom:14px;">
+          <div>
+            <label class="form-label">15. Travel Date</label>
+            <input class="form-control" name="travel_date" type="date">
+          </div>
+          <div>
+            <label class="form-label">Candidate Type</label>
+            <select class="form-select" name="candidate_type">
+              <option>New</option><option>Renewal</option><option>Repeat</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section-title">🗂 Admin & Follow-up</div>
+        <div class="form-row" style="margin-bottom:14px;">
+          <div>
+            <label class="form-label">17. Remarks</label>
+            <textarea class="form-control" name="remarks" placeholder="Any remarks..."></textarea>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div>
+              <label class="form-label">18. Follow-up Date</label>
+              <input class="form-control" name="followup_date" type="date">
+            </div>
+            <div>
+              <label class="form-label">19. Staff Name</label>
+              <input class="form-control" name="staff_name" placeholder="Assigned staff name">
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label class="form-label">20. Registration Date</label>
+            <input class="form-control" name="registration_date" type="date" value="{% now 'Y-m-d' %}">
+          </div>
+          <div></div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('addModal').style.display='none'">Cancel</button>
+        <button type="submit" class="btn btn-primary">💾 Save Candidate</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Close modal on overlay click
+document.getElementById('addModal').addEventListener('click', function(e){
+  if(e.target === this) this.style.display = 'none';
+});
+</script>
+{% endblock %}

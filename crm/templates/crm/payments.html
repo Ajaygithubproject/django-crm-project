@@ -1,0 +1,93 @@
+{% extends 'crm/base.html' %}
+{% block title %}Payments — ImmigrateCRM{% endblock %}
+{% block page_title %}Payment Ledger{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <div class="section-title">Payments — Total: <span class="text-green">₹{{ total|floatformat:0 }}</span></div>
+  <button class="btn btn-primary" onclick="document.getElementById('addPayModal').style.display='flex'">+ Add Payment</button>
+</div>
+
+<div class="table-card">
+  <div class="table-toolbar">
+    <form method="get" style="display:flex;gap:10px;flex:1;">
+      <input class="search-input" name="q" value="{{ q }}" placeholder="🔍 Search candidate, purpose, mode...">
+      <button type="submit" class="btn btn-secondary btn-sm">Search</button>
+      {% if q %}<a href="{% url 'payments' %}" class="btn btn-secondary btn-sm">✕ Clear</a>{% endif %}
+    </form>
+    <a href="{% url 'export_excel' %}" class="btn btn-secondary btn-sm">⬇ Export</a>
+  </div>
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr><th>#</th><th>Candidate</th><th>Amount</th><th>Mode</th><th>Purpose</th><th>Date</th><th>Reference</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for p in payments %}
+        <tr>
+          <td class="text-muted">{{ forloop.counter }}</td>
+          <td><a href="{% url 'candidate_view' p.candidate.pk %}" style="color:var(--accent);font-weight:600;">{{ p.candidate.name }}</a></td>
+          <td class="text-green fw-bold">₹{{ p.amount|floatformat:0 }}</td>
+          <td>{{ p.mode }}</td>
+          <td>{{ p.purpose }}</td>
+          <td>{{ p.date }}</td>
+          <td class="mono">{{ p.reference|default:"—" }}</td>
+          <td><a href="{% url 'payment_delete' p.pk %}" class="btn btn-danger btn-sm"
+               onclick="return confirm('Delete this payment?')">🗑</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8"><div class="empty-state"><div class="empty-icon">💰</div><p>No payments recorded yet.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addPayModal" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">Add Payment</div>
+      <button class="modal-close" onclick="document.getElementById('addPayModal').style.display='none'">✕</button>
+    </div>
+    <form method="post" action="{% url 'payment_add' %}">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div class="form-row" style="margin-bottom:14px;">
+          <div><label class="form-label">Candidate *</label>
+            <select class="form-select" name="candidate" required>
+              <option value="">-- Select --</option>
+              {% for c in form.candidate.field.queryset %}<option value="{{ c.pk }}">{{ c.name }}</option>{% endfor %}
+            </select></div>
+          <div><label class="form-label">Amount (₹) *</label>
+            <input class="form-control" name="amount" type="number" placeholder="0" required></div>
+        </div>
+        <div class="form-row" style="margin-bottom:14px;">
+          <div><label class="form-label">Mode</label>
+            <select class="form-select" name="mode">
+              {% for val,lbl in form.fields.mode.choices %}<option value="{{ val }}">{{ lbl }}</option>{% endfor %}
+            </select></div>
+          <div><label class="form-label">Purpose</label>
+            <select class="form-select" name="purpose">
+              {% for val,lbl in form.fields.purpose.choices %}<option value="{{ val }}">{{ lbl }}</option>{% endfor %}
+            </select></div>
+        </div>
+        <div class="form-row" style="margin-bottom:14px;">
+          <div><label class="form-label">Date *</label>
+            <input class="form-control" name="date" type="date" value="{% now 'Y-m-d' %}" required></div>
+          <div><label class="form-label">Reference / UTR</label>
+            <input class="form-control" name="reference" placeholder="Transaction reference"></div>
+        </div>
+        <div><label class="form-label">Notes</label>
+          <textarea class="form-control" name="notes" rows="2" placeholder="Remarks..."></textarea></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('addPayModal').style.display='none'">Cancel</button>
+        <button type="submit" class="btn btn-primary">💾 Save Payment</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>document.getElementById('addPayModal').addEventListener('click',function(e){if(e.target===this)this.style.display='none';});</script>
+{% endblock %}

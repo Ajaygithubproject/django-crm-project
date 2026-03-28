@@ -1,0 +1,100 @@
+{% extends 'crm/base.html' %}
+{% block title %}Legal & Compliance — ImmigrateCRM{% endblock %}
+{% block page_title %}Legal, Refunds & Compliance{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <div class="section-title">Legal Records ({{ records|length }})</div>
+  <button class="btn btn-primary" onclick="document.getElementById('addLegalModal').style.display='flex'">+ Add Record</button>
+</div>
+
+<div class="table-card">
+  <div class="table-toolbar">
+    <form method="get" style="display:flex;gap:10px;flex:1;">
+      <input class="search-input" name="q" value="{{ q }}" placeholder="🔍 Search candidate...">
+      <button type="submit" class="btn btn-secondary btn-sm">Search</button>
+      {% if q %}<a href="{% url 'legal' %}" class="btn btn-secondary btn-sm">✕ Clear</a>{% endif %}
+    </form>
+  </div>
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr><th>#</th><th>Candidate</th><th>Agreement</th><th>SOP Shared</th><th>Refund Eligible</th><th>Refund Amt</th><th>Cancellation</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for r in records %}
+        <tr>
+          <td class="text-muted">{{ forloop.counter }}</td>
+          <td><a href="{% url 'candidate_view' r.candidate.pk %}" style="color:var(--accent);font-weight:600;">{{ r.candidate.name }}</a></td>
+          <td>{% if r.agreement_signed %}<span class="yes-badge">✔ Yes</span>{% else %}<span class="no-badge">✘ No</span>{% endif %}</td>
+          <td>{% if r.sop_shared %}<span class="yes-badge">✔ Yes</span>{% else %}<span class="no-badge">✘ No</span>{% endif %}</td>
+          <td>{% if r.refund_eligible %}<span class="yes-badge">✔ Yes</span>{% else %}<span class="no-badge">✘ No</span>{% endif %}</td>
+          <td>{% if r.refund_amount %}₹{{ r.refund_amount|floatformat:0 }}{% else %}—{% endif %}</td>
+          <td><span class="badge badge-{{ r.cancellation_status|lower }}">{{ r.cancellation_status }}</span></td>
+          <td><a href="{% url 'legal_delete' r.pk %}" class="btn btn-danger btn-sm"
+               onclick="return confirm('Delete?')">🗑</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8"><div class="empty-state"><div class="empty-icon">⚖️</div><p>No legal records yet.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addLegalModal" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">Legal / Compliance Record</div>
+      <button class="modal-close" onclick="document.getElementById('addLegalModal').style.display='none'">✕</button>
+    </div>
+    <form method="post" action="{% url 'legal_add' %}">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div class="form-row" style="margin-bottom:14px;">
+          <div><label class="form-label">Candidate *</label>
+            <select class="form-select" name="candidate" required>
+              <option value="">-- Select --</option>
+              {% for c in form.candidate.field.queryset %}<option value="{{ c.pk }}">{{ c.name }}</option>{% endfor %}
+            </select></div>
+          <div><label class="form-label">Cancellation Status</label>
+            <select class="form-select" name="cancellation_status">
+              <option>No</option><option>Pending</option><option>Approved</option>
+            </select></div>
+        </div>
+        <div class="form-row" style="margin-bottom:14px;">
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text);">
+              <input type="checkbox" name="agreement_signed" style="width:16px;height:16px;accent-color:var(--accent);"> Agreement Signed
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text);">
+              <input type="checkbox" name="sop_shared" style="width:16px;height:16px;accent-color:var(--accent);"> SOP Shared
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text);">
+              <input type="checkbox" name="terms_accepted" style="width:16px;height:16px;accent-color:var(--accent);"> Terms Accepted
+            </label>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text);">
+              <input type="checkbox" name="refund_eligible" style="width:16px;height:16px;accent-color:var(--accent);"> Refund Eligible
+            </label>
+            <div><label class="form-label">Refund Amount (₹)</label>
+              <input class="form-control" name="refund_amount" type="number" placeholder="0"></div>
+            <div><label class="form-label">Refund Date</label>
+              <input class="form-control" name="refund_date" type="date"></div>
+          </div>
+        </div>
+        <div><label class="form-label">Notes</label>
+          <textarea class="form-control" name="notes" rows="2" placeholder="Legal remarks..."></textarea></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('addLegalModal').style.display='none'">Cancel</button>
+        <button type="submit" class="btn btn-primary">💾 Save Record</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>document.getElementById('addLegalModal').addEventListener('click',function(e){if(e.target===this)this.style.display='none';});</script>
+{% endblock %}

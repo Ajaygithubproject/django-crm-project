@@ -1,0 +1,41 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ImmigrateCRM — Login</title>
+<link rel="stylesheet" href="{% static 'crm/css/style.css' %}">
+</head>
+<body>
+<div class="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-brand">✈ ImmigrateCRM</div>
+      <div class="login-sub">Immigration & Multi-Domain Operations</div>
+    </div>
+
+    {% for message in messages %}
+      <div class="alert alert-error">{{ message }}</div>
+    {% endfor %}
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label>Username</label>
+        <input class="form-control" type="text" name="username" placeholder="Enter username" autofocus>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input class="form-control" type="password" name="password" placeholder="Enter password">
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">Sign In →</button>
+    </form>
+
+    <div style="text-align:center;margin-top:16px;font-size:12px;color:var(--muted);">
+      Default: username <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;">admin</code>
+      / password <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;">admin</code>
+    </div>
+  </div>
+</div>
+</body>
+</html>

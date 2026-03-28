@@ -1,0 +1,97 @@
+{% extends 'crm/base.html' %}
+{% block title %}Documents — ImmigrateCRM{% endblock %}
+{% block page_title %}Document Management{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <div class="section-title">Document Records ({{ documents|length }})</div>
+  <button class="btn btn-primary" onclick="document.getElementById('addDocModal').style.display='flex'">+ Add Record</button>
+</div>
+
+<div class="table-card">
+  <div class="table-toolbar">
+    <form method="get" style="display:flex;gap:10px;flex:1;">
+      <input class="search-input" name="q" value="{{ q }}" placeholder="🔍 Search candidate, document type...">
+      <button type="submit" class="btn btn-secondary btn-sm">Search</button>
+      {% if q %}<a href="{% url 'documents' %}" class="btn btn-secondary btn-sm">✕ Clear</a>{% endif %}
+    </form>
+  </div>
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr><th>#</th><th>Candidate</th><th>Doc Type</th><th>Original</th><th>Attested</th><th>Verified</th><th>With Company</th><th>Date</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for d in documents %}
+        <tr>
+          <td class="text-muted">{{ forloop.counter }}</td>
+          <td><a href="{% url 'candidate_view' d.candidate.pk %}" style="color:var(--accent);font-weight:600;">{{ d.candidate.name }}</a></td>
+          <td>{{ d.doc_type }}</td>
+          <td>{% if d.is_original %}<span class="yes-badge">✔ Original</span>{% else %}<span class="no-badge">Soft Copy</span>{% endif %}</td>
+          <td>{% if d.is_attested %}<span class="yes-badge">✔ Yes</span>{% else %}<span class="no-badge">✘ No</span>{% endif %}</td>
+          <td>{% if d.is_verified %}<span class="yes-badge">✔ Yes</span>{% else %}<span class="no-badge">✘ No</span>{% endif %}</td>
+          <td>{% if d.with_company %}<span class="yes-badge">✔ Yes</span>{% else %}<span class="no-badge">✘ No</span>{% endif %}</td>
+          <td style="font-size:12px;">{{ d.date_added }}</td>
+          <td><a href="{% url 'document_delete' d.pk %}" class="btn btn-danger btn-sm"
+               onclick="return confirm('Delete?')">🗑</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📁</div><p>No document records yet.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addDocModal" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">Add Document Record</div>
+      <button class="modal-close" onclick="document.getElementById('addDocModal').style.display='none'">✕</button>
+    </div>
+    <form method="post" action="{% url 'document_add' %}">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div class="form-row" style="margin-bottom:14px;">
+          <div><label class="form-label">Candidate *</label>
+            <select class="form-select" name="candidate" required>
+              <option value="">-- Select --</option>
+              {% for c in form.candidate.field.queryset %}<option value="{{ c.pk }}">{{ c.name }}</option>{% endfor %}
+            </select></div>
+          <div><label class="form-label">Document Type</label>
+            <select class="form-select" name="doc_type">
+              {% for val,lbl in form.fields.doc_type.choices %}<option value="{{ val }}">{{ lbl }}</option>{% endfor %}
+            </select></div>
+        </div>
+        <div class="form-row" style="margin-bottom:14px;">
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text);">
+              <input type="checkbox" name="is_original" style="width:16px;height:16px;accent-color:var(--accent);"> Original Document
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text);">
+              <input type="checkbox" name="is_attested" style="width:16px;height:16px;accent-color:var(--accent);"> Attested
+            </label>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text);">
+              <input type="checkbox" name="is_verified" style="width:16px;height:16px;accent-color:var(--accent);"> Verified
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text);">
+              <input type="checkbox" name="with_company" style="width:16px;height:16px;accent-color:var(--accent);"> Original With Company
+            </label>
+          </div>
+        </div>
+        <div><label class="form-label">Notes</label>
+          <textarea class="form-control" name="notes" rows="2" placeholder="Remarks..."></textarea></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('addDocModal').style.display='none'">Cancel</button>
+        <button type="submit" class="btn btn-primary">💾 Save Document</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>document.getElementById('addDocModal').addEventListener('click',function(e){if(e.target===this)this.style.display='none';});</script>
+{% endblock %}

@@ -1,0 +1,228 @@
+{% extends 'crm/base.html' %}
+{% block title %}{{ candidate.name }} — ImmigrateCRM{% endblock %}
+{% block page_title %}Candidate Profile{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:16px;display:flex;gap:10px;align-items:center;">
+  <a href="{% url 'candidates' %}" class="btn btn-secondary btn-sm">← Back</a>
+  <a href="{% url 'candidate_edit' candidate.pk %}" class="btn btn-secondary btn-sm">✏️ Edit</a>
+  <a href="{% url 'candidate_view' candidate.pk %}?download=1" class="btn btn-warning btn-sm" id="downloadBtn">⬇ Download Profile</a>
+  <a href="{% url 'candidate_delete' candidate.pk %}" class="btn btn-danger btn-sm"
+     onclick="return confirm('Delete this candidate?')">🗑 Delete</a>
+</div>
+
+<!-- Profile Header -->
+<div class="profile-header">
+  <div class="profile-name">👤 {{ candidate.name }}</div>
+  <div class="profile-sub">
+    {% if candidate.position %}{{ candidate.position }}{% endif %}
+    {% if candidate.country %} — {{ candidate.country }}{% endif %}
+    {% if candidate.registration_date %} &nbsp;|&nbsp; Registered: {{ candidate.registration_date }}{% endif %}
+    {% if candidate.staff_name %} &nbsp;|&nbsp; Staff: {{ candidate.staff_name }}{% endif %}
+  </div>
+</div>
+
+<!-- Status Chips -->
+<div class="status-chips">
+  <div class="status-chip">
+    <span class="chip-label">Status</span>
+    <span class="badge badge-{{ candidate.status|lower|slugify }}">{{ candidate.status }}</span>
+  </div>
+  <div class="status-chip">
+    <span class="chip-label">Medical</span>
+    <span class="badge badge-{{ candidate.medical_status|lower|slugify }}">{{ candidate.medical_status }}</span>
+  </div>
+  <div class="status-chip">
+    <span class="chip-label">Visa</span>
+    <span class="badge badge-{{ candidate.visa_status|lower|slugify }}">{{ candidate.visa_status }}</span>
+  </div>
+  <div class="status-chip">
+    <span class="chip-label">Ticket</span>
+    <span class="badge badge-{{ candidate.ticket_status|lower|slugify }}">{{ candidate.ticket_status }}</span>
+  </div>
+  <div class="status-chip">
+    <span class="chip-label">Payment</span>
+    <strong class="text-green">₹{{ candidate.payment|floatformat:0 }}</strong>
+  </div>
+  <div class="status-chip">
+    <span class="chip-label">Type</span>
+    <span class="badge badge-new">{{ candidate.candidate_type }}</span>
+  </div>
+</div>
+
+<!-- Info Grid -->
+<div class="info-grid">
+  <div class="info-box">
+    <div class="info-box-title">👤 Basic Information</div>
+    <div class="info-row"><span class="lbl">1. Name</span><span class="val">{{ candidate.name }}</span></div>
+    <div class="info-row"><span class="lbl">2. Phone</span><span class="val">{{ candidate.phone|default:"—" }}</span></div>
+    <div class="info-row"><span class="lbl">3. Passport No.</span><span class="val mono">{{ candidate.passport_number|default:"—" }}</span></div>
+    <div class="info-row"><span class="lbl">4. Country</span><span class="val">{{ candidate.country|default:"—" }}</span></div>
+    <div class="info-row"><span class="lbl">5. Position</span><span class="val">{{ candidate.position|default:"—" }}</span></div>
+    <div class="info-row"><span class="lbl">6. Experience</span><span class="val">{{ candidate.experience|default:"—" }}</span></div>
+    <div class="info-row"><span class="lbl">Candidate Type</span><span class="val">{{ candidate.candidate_type }}</span></div>
+  </div>
+
+  <div class="info-box">
+    <div class="info-box-title">📄 Documents</div>
+    <div class="info-row"><span class="lbl">12. Resume</span><span class="val">{{ candidate.resume_status }}</span></div>
+    <div class="info-row"><span class="lbl">13. Passport Copy</span><span class="val">{{ candidate.passport_copy_status }}</span></div>
+    <div class="info-row"><span class="lbl">14. Offer Letter</span><span class="val">{{ candidate.offer_letter_status }}</span></div>
+    <div class="info-row"><span class="lbl">15. Travel Date</span><span class="val">{{ candidate.travel_date|default:"—" }}</span></div>
+    <div class="info-row"><span class="lbl">16. Reference</span><span class="val">{{ candidate.reference|default:"—" }}</span></div>
+    {% if candidate.resume_file %}
+    <div class="info-row"><span class="lbl">Resume File</span>
+      <span class="val"><a href="{{ candidate.resume_file.url }}" target="_blank" style="color:var(--accent)">Download</a></span></div>
+    {% endif %}
+    {% if candidate.passport_copy_file %}
+    <div class="info-row"><span class="lbl">Passport File</span>
+      <span class="val"><a href="{{ candidate.passport_copy_file.url }}" target="_blank" style="color:var(--accent)">Download</a></span></div>
+    {% endif %}
+  </div>
+
+  <div class="info-box">
+    <div class="info-box-title">📊 Status Details</div>
+    <div class="info-row"><span class="lbl">7. Status</span>
+      <span class="val"><span class="badge badge-{{ candidate.status|lower|slugify }}">{{ candidate.status }}</span></span></div>
+    <div class="info-row"><span class="lbl">8. Medical Status</span>
+      <span class="val"><span class="badge badge-{{ candidate.medical_status|lower|slugify }}">{{ candidate.medical_status }}</span></span></div>
+    <div class="info-row"><span class="lbl">9. Visa Status</span>
+      <span class="val"><span class="badge badge-{{ candidate.visa_status|lower|slugify }}">{{ candidate.visa_status }}</span></span></div>
+    <div class="info-row"><span class="lbl">10. Ticket Status</span>
+      <span class="val"><span class="badge badge-{{ candidate.ticket_status|lower|slugify }}">{{ candidate.ticket_status }}</span></span></div>
+    <div class="info-row"><span class="lbl">11. Payment</span>
+      <span class="val text-green fw-bold">₹{{ candidate.payment|floatformat:0 }}</span></div>
+  </div>
+
+  <div class="info-box">
+    <div class="info-box-title">🗂 Admin & Follow-up</div>
+    <div class="info-row"><span class="lbl">17. Remarks</span><span class="val">{{ candidate.remarks|default:"—" }}</span></div>
+    <div class="info-row"><span class="lbl">18. Follow-up Date</span>
+      <span class="val {% if candidate.followup_date %}text-gold{% endif %}">{{ candidate.followup_date|default:"—" }}</span></div>
+    <div class="info-row"><span class="lbl">19. Staff Name</span><span class="val">{{ candidate.staff_name|default:"—" }}</span></div>
+    <div class="info-row"><span class="lbl">20. Registration Date</span><span class="val">{{ candidate.registration_date|default:"—" }}</span></div>
+    <div class="info-row"><span class="lbl">Created At</span><span class="val text-muted" style="font-size:11px;">{{ candidate.created_at|date:"d M Y H:i" }}</span></div>
+  </div>
+</div>
+
+<!-- Related Applications -->
+{% if applications %}
+<div class="section-title mb-1 mt-2">Applications ({{ applications|length }})</div>
+<div class="table-card mb-2">
+  <div class="table-responsive">
+    <table>
+      <thead><tr><th>Country</th><th>Job</th><th>Status</th><th>Date</th><th>Package</th><th>Paid</th><th>Balance</th></tr></thead>
+      <tbody>
+        {% for a in applications %}
+        <tr>
+          <td>{{ a.country|default:"—" }}</td>
+          <td>{{ a.job_category|default:"—" }}</td>
+          <td><span class="badge badge-{{ a.status|lower|slugify }}">{{ a.status }}</span></td>
+          <td>{{ a.application_date|default:"—" }}</td>
+          <td>₹{{ a.package_amount|floatformat:0 }}</td>
+          <td class="text-green">₹{{ a.amount_paid|floatformat:0 }}</td>
+          <td class="{% if a.balance > 0 %}text-red{% else %}text-green{% endif %}">₹{{ a.balance|floatformat:0 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- Related Payments -->
+{% if payments %}
+<div class="section-title mb-1 mt-2">Payments (Total: ₹{{ total_paid|floatformat:0 }})</div>
+<div class="table-card mb-2">
+  <div class="table-responsive">
+    <table>
+      <thead><tr><th>Amount</th><th>Mode</th><th>Purpose</th><th>Date</th><th>Reference</th></tr></thead>
+      <tbody>
+        {% for p in payments %}
+        <tr>
+          <td class="text-green fw-bold">₹{{ p.amount|floatformat:0 }}</td>
+          <td>{{ p.mode }}</td>
+          <td>{{ p.purpose }}</td>
+          <td>{{ p.date }}</td>
+          <td class="mono">{{ p.reference|default:"—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Download profile as HTML file
+document.getElementById('downloadBtn').addEventListener('click', function(e){
+  e.preventDefault();
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>Candidate Profile - {{ candidate.name }}</title>
+  <style>
+    body{font-family:Arial,sans-serif;margin:0;padding:30px;color:#111;background:#fff;font-size:13px;}
+    .header{background:linear-gradient(135deg,#1a237e,#283593);color:#fff;padding:24px 30px;border-radius:8px;margin-bottom:20px;}
+    .header h1{margin:0;font-size:22px;}.header p{margin:4px 0 0;opacity:.8;font-size:13px;}
+    .chips{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+    .chip{background:#f0f4ff;border:1px solid #c5cae9;border-radius:6px;padding:8px 14px;flex:1;min-width:100px;text-align:center;}
+    .chip .label{font-size:10px;color:#666;display:block;text-transform:uppercase;}
+    .chip .val{font-size:13px;font-weight:700;color:#1a237e;}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+    .box{border:1px solid #e0e0e0;border-radius:6px;padding:14px;}
+    .box h3{margin:0 0 10px;font-size:12px;color:#3949ab;text-transform:uppercase;}
+    .row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f5f5f5;font-size:12px;}
+    .row .lbl{color:#888;}.row .val{font-weight:600;}
+    .footer{margin-top:20px;text-align:center;font-size:11px;color:#aaa;border-top:1px solid #eee;padding-top:12px;}
+  </style></head><body>
+  <div class="header"><h1>✈ ImmigrateCRM — Candidate Profile</h1>
+  <p>Generated: ${new Date().toLocaleString('en-IN')}</p></div>
+  <div class="chips">
+    <div class="chip"><span class="label">Status</span><span class="val">{{ candidate.status }}</span></div>
+    <div class="chip"><span class="label">Medical</span><span class="val">{{ candidate.medical_status }}</span></div>
+    <div class="chip"><span class="label">Visa</span><span class="val">{{ candidate.visa_status }}</span></div>
+    <div class="chip"><span class="label">Ticket</span><span class="val">{{ candidate.ticket_status }}</span></div>
+    <div class="chip"><span class="label">Payment</span><span class="val">₹{{ candidate.payment|floatformat:0 }}</span></div>
+  </div>
+  <div class="grid">
+    <div class="box"><h3>👤 Basic Info</h3>
+      <div class="row"><span class="lbl">1. Name</span><span class="val">{{ candidate.name }}</span></div>
+      <div class="row"><span class="lbl">2. Phone</span><span class="val">{{ candidate.phone|default:"—" }}</span></div>
+      <div class="row"><span class="lbl">3. Passport No.</span><span class="val">{{ candidate.passport_number|default:"—" }}</span></div>
+      <div class="row"><span class="lbl">4. Country</span><span class="val">{{ candidate.country|default:"—" }}</span></div>
+      <div class="row"><span class="lbl">5. Position</span><span class="val">{{ candidate.position|default:"—" }}</span></div>
+      <div class="row"><span class="lbl">6. Experience</span><span class="val">{{ candidate.experience|default:"—" }}</span></div>
+    </div>
+    <div class="box"><h3>📄 Documents</h3>
+      <div class="row"><span class="lbl">12. Resume</span><span class="val">{{ candidate.resume_status }}</span></div>
+      <div class="row"><span class="lbl">13. Passport Copy</span><span class="val">{{ candidate.passport_copy_status }}</span></div>
+      <div class="row"><span class="lbl">14. Offer Letter</span><span class="val">{{ candidate.offer_letter_status }}</span></div>
+      <div class="row"><span class="lbl">15. Travel Date</span><span class="val">{{ candidate.travel_date|default:"—" }}</span></div>
+      <div class="row"><span class="lbl">16. Reference</span><span class="val">{{ candidate.reference|default:"—" }}</span></div>
+    </div>
+    <div class="box"><h3>🗂 Admin</h3>
+      <div class="row"><span class="lbl">17. Remarks</span><span class="val">{{ candidate.remarks|default:"—" }}</span></div>
+      <div class="row"><span class="lbl">18. Follow-up</span><span class="val">{{ candidate.followup_date|default:"—" }}</span></div>
+      <div class="row"><span class="lbl">19. Staff Name</span><span class="val">{{ candidate.staff_name|default:"—" }}</span></div>
+      <div class="row"><span class="lbl">20. Reg. Date</span><span class="val">{{ candidate.registration_date|default:"—" }}</span></div>
+    </div>
+    <div class="box"><h3>📊 Status</h3>
+      <div class="row"><span class="lbl">7. Status</span><span class="val">{{ candidate.status }}</span></div>
+      <div class="row"><span class="lbl">8. Medical</span><span class="val">{{ candidate.medical_status }}</span></div>
+      <div class="row"><span class="lbl">9. Visa</span><span class="val">{{ candidate.visa_status }}</span></div>
+      <div class="row"><span class="lbl">10. Ticket</span><span class="val">{{ candidate.ticket_status }}</span></div>
+      <div class="row"><span class="lbl">11. Payment</span><span class="val">₹{{ candidate.payment|floatformat:0 }}</span></div>
+    </div>
+  </div>
+  <div class="footer">ImmigrateCRM | ID: {{ candidate.pk }} | Printed: ${new Date().toLocaleDateString('en-IN')}</div>
+  </body></html>`;
+  const blob = new Blob([html], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'Candidate_{{ candidate.name|slugify }}_Profile.html';
+  a.click();
+});
+</script>
+{% endblock %}

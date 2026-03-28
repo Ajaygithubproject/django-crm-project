@@ -1,0 +1,97 @@
+{% extends 'crm/base.html' %}
+{% block title %}Dashboard — ImmigrateCRM{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+  <div class="stat-card stat-blue">
+    <div class="stat-label">Total Candidates</div>
+    <div class="stat-value">{{ total_candidates }}</div>
+    <div class="stat-sub">all time</div>
+  </div>
+  <div class="stat-card stat-green">
+    <div class="stat-label">Boarded</div>
+    <div class="stat-value">{{ boarded }}</div>
+    <div class="stat-sub">successful</div>
+  </div>
+  <div class="stat-card stat-purple">
+    <div class="stat-label">Active Cases</div>
+    <div class="stat-value">{{ active }}</div>
+    <div class="stat-sub">in processing</div>
+  </div>
+  <div class="stat-card stat-gold">
+    <div class="stat-label">Revenue Collected</div>
+    <div class="stat-value">₹{{ revenue|floatformat:0 }}</div>
+    <div class="stat-sub">total payments</div>
+  </div>
+  <div class="stat-card stat-red">
+    <div class="stat-label">Pending Balance</div>
+    <div class="stat-value">₹{{ pending_balance|floatformat:0 }}</div>
+    <div class="stat-sub">outstanding</div>
+  </div>
+  <div class="stat-card stat-blue">
+    <div class="stat-label">Open Invoices</div>
+    <div class="stat-value">{{ open_invoices }}</div>
+    <div class="stat-sub">unpaid</div>
+  </div>
+</div>
+
+{% if followups_today > 0 %}
+<div class="alert alert-info" style="margin-bottom:20px;">
+  📅 <strong>{{ followups_today }}</strong> candidate follow-up(s) scheduled for today.
+  <a href="{% url 'candidates' %}" style="color:var(--accent);margin-left:8px;">View →</a>
+</div>
+{% endif %}
+
+<div class="section-header">
+  <div class="section-title">Recent Applications</div>
+  <a href="{% url 'applications' %}" class="btn btn-secondary btn-sm">View All</a>
+</div>
+<div class="table-card">
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Candidate</th>
+          <th>Country</th>
+          <th>Job</th>
+          <th>Status</th>
+          <th>App Date</th>
+          <th>Package</th>
+          <th>Balance</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for app in recent_apps %}
+        <tr>
+          <td>
+            <a href="{% url 'candidate_view' app.candidate.pk %}" style="color:var(--accent);font-weight:600;">
+              {{ app.candidate.name }}
+            </a>
+          </td>
+          <td>{{ app.country|default:"—" }}</td>
+          <td>{{ app.job_category|default:"—" }}</td>
+          <td>
+            <span class="badge badge-{{ app.status|lower|slugify }}">{{ app.status }}</span>
+          </td>
+          <td>{{ app.application_date|default:"—" }}</td>
+          <td class="fw-bold">₹{{ app.package_amount|floatformat:0 }}</td>
+          <td class="{% if app.balance > 0 %}text-red{% else %}text-green{% endif %} fw-bold">
+            ₹{{ app.balance|floatformat:0 }}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7">
+            <div class="empty-state">
+              <div class="empty-icon">📋</div>
+              <p>No applications yet. <a href="{% url 'applications' %}" style="color:var(--accent)">Add one →</a></p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

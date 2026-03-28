@@ -1,0 +1,100 @@
+{% extends 'crm/base.html' %}
+{% block title %}Courier Register — ImmigrateCRM{% endblock %}
+{% block page_title %}Courier Inward / Outward Register{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <div class="section-title">Courier Register ({{ entries|length }})</div>
+  <button class="btn btn-primary" onclick="document.getElementById('addCourierModal').style.display='flex'">+ Add Entry</button>
+</div>
+
+<div class="table-card">
+  <div class="table-toolbar">
+    <form method="get" style="display:flex;gap:10px;flex:1;">
+      <input class="search-input" name="q" value="{{ q }}" placeholder="🔍 Search candidate, tracking, company...">
+      <button type="submit" class="btn btn-secondary btn-sm">Search</button>
+      {% if q %}<a href="{% url 'courier' %}" class="btn btn-secondary btn-sm">✕ Clear</a>{% endif %}
+    </form>
+  </div>
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr><th>#</th><th>Type</th><th>Candidate</th><th>From → To</th><th>Company</th><th>Tracking #</th><th>Date</th><th>Cost</th><th>Handled By</th></tr>
+      </thead>
+      <tbody>
+        {% for cr in entries %}
+        <tr>
+          <td class="text-muted">{{ forloop.counter }}</td>
+          <td><span class="badge badge-{{ cr.entry_type|lower }}">{{ cr.entry_type }}</span></td>
+          <td>{% if cr.candidate %}<a href="{% url 'candidate_view' cr.candidate.pk %}" style="color:var(--accent);">{{ cr.candidate.name }}</a>{% else %}—{% endif %}</td>
+          <td style="font-size:12px;">{{ cr.from_person|default:"—" }} → {{ cr.to_person|default:"—" }}</td>
+          <td>{{ cr.courier_company|default:"—" }}</td>
+          <td class="mono">{{ cr.tracking_number|default:"—" }}</td>
+          <td style="font-size:12px;">{{ cr.date }}</td>
+          <td>₹{{ cr.cost|floatformat:0 }}</td>
+          <td>{{ cr.handled_by|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📦</div><p>No courier entries yet.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addCourierModal" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">Add Courier Entry</div>
+      <button class="modal-close" onclick="document.getElementById('addCourierModal').style.display='none'">✕</button>
+    </div>
+    <form method="post" action="{% url 'courier_add' %}">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div class="form-row" style="margin-bottom:14px;">
+          <div><label class="form-label">Type</label>
+            <select class="form-select" name="entry_type">
+              <option>Inward</option><option>Outward</option>
+            </select></div>
+          <div><label class="form-label">Candidate</label>
+            <select class="form-select" name="candidate">
+              <option value="">-- Select (optional) --</option>
+              {% for c in form.candidate.field.queryset %}<option value="{{ c.pk }}">{{ c.name }}</option>{% endfor %}
+            </select></div>
+        </div>
+        <div class="form-row" style="margin-bottom:14px;">
+          <div><label class="form-label">From (Sender)</label>
+            <input class="form-control" name="from_person" placeholder="Sender name/company"></div>
+          <div><label class="form-label">To (Receiver)</label>
+            <input class="form-control" name="to_person" placeholder="Receiver name/company"></div>
+        </div>
+        <div class="form-row" style="margin-bottom:14px;">
+          <div><label class="form-label">Courier Company</label>
+            <input class="form-control" name="courier_company" placeholder="e.g. DTDC, BlueDart"></div>
+          <div><label class="form-label">Tracking Number</label>
+            <input class="form-control" name="tracking_number" placeholder="AWB / Docket No."></div>
+        </div>
+        <div class="form-row" style="margin-bottom:14px;">
+          <div><label class="form-label">Date *</label>
+            <input class="form-control" name="date" type="date" value="{% now 'Y-m-d' %}" required></div>
+          <div><label class="form-label">Cost (₹)</label>
+            <input class="form-control" name="cost" type="number" placeholder="0"></div>
+        </div>
+        <div class="form-row">
+          <div><label class="form-label">Contents</label>
+            <input class="form-control" name="contents" placeholder="e.g. Passport, Documents"></div>
+          <div><label class="form-label">Handled By</label>
+            <input class="form-control" name="handled_by" placeholder="Staff name"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('addCourierModal').style.display='none'">Cancel</button>
+        <button type="submit" class="btn btn-primary">💾 Save Entry</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>document.getElementById('addCourierModal').addEventListener('click',function(e){if(e.target===this)this.style.display='none';});</script>
+{% endblock %}
