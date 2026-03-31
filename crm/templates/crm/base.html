@@ -53,6 +53,32 @@
       <a href="{% url 'b2b' %}" class="nav-item {% if page == 'b2b' %}active{% endif %}">
         <span class="nav-icon">🏢</span>B2B Clients
       </a>
+    <div class="nav-section">
+
+<div class="nav-label">
+Booking Management
+</div>
+
+<a href="{% url 'hotel' %}"
+class="nav-item {% if page == 'hotel' %}active{% endif %}">
+
+<span class="nav-icon">
+🏨
+</span>
+
+Hotel Booking
+
+</a>
+
+<a href="{% url 'flight' %}"
+class="nav-item sub">
+
+✈️ Flight Booking
+
+</a>
+
+
+</div> 
     </div>
     <div class="sidebar-footer">
       <div class="user-info">

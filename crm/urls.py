@@ -55,4 +55,8 @@ urlpatterns = [
     # Excel
     path('export/', views.export_excel, name='export_excel'),
     path('import/', views.import_excel, name='import_excel'),
+
+    path('hotel/',views.hotel,name="hotel"),
+    path('flight/',views.flight,name="flight"
+),
 ]

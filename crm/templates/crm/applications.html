@@ -3,110 +3,432 @@
 {% block page_title %}Applications & Status{% endblock %}
 
 {% block content %}
+
 <div class="section-header">
-  <div class="section-title">Applications ({{ applications|length }})</div>
-  <button class="btn btn-primary" onclick="document.getElementById('addAppModal').style.display='flex'">+ New Application</button>
+<div class="section-title">
+Applications ({{ applications|length }})
 </div>
 
-<!-- Status Filter Tabs -->
-<div style="display:flex;gap:4px;background:var(--surface2);padding:4px;border-radius:10px;margin-bottom:20px;width:fit-content;flex-wrap:wrap;">
-  <a href="{% url 'applications' %}" class="btn btn-sm {% if not status_filter %}btn-secondary{% else %}btn-secondary{% endif %}"
-     style="{% if not status_filter %}background:var(--surface);{% endif %}">All</a>
-  {% for s in statuses %}
-  <a href="?status={{ s }}" class="btn btn-sm btn-secondary"
-     style="{% if status_filter == s %}background:var(--surface);color:var(--text);{% endif %}">{{ s }}</a>
-  {% endfor %}
+<button class="btn btn-primary"
+onclick="document.getElementById('addAppModal').style.display='flex'">
++ New Application
+</button>
+
 </div>
+
 
 <div class="table-card">
-  <div class="table-toolbar">
-    <form method="get" style="display:flex;gap:10px;flex:1;">
-      {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
-      <input class="search-input" name="q" value="{{ q }}" placeholder="🔍 Search candidate, country, job...">
-      <button type="submit" class="btn btn-secondary btn-sm">Search</button>
-    </form>
-    <a href="{% url 'export_excel' %}" class="btn btn-secondary btn-sm">⬇ Export</a>
-  </div>
-  <div class="table-responsive">
-    <table>
-      <thead>
-        <tr><th>Candidate</th><th>Country</th><th>Job</th><th>Status</th><th>App Date</th>
-            <th>Package</th><th>Paid</th><th>Balance</th><th>Actions</th></tr>
-      </thead>
-      <tbody>
-        {% for a in applications %}
-        <tr>
-          <td><a href="{% url 'candidate_view' a.candidate.pk %}" style="color:var(--accent);font-weight:600;">{{ a.candidate.name }}</a></td>
-          <td>{{ a.country|default:"—" }}</td>
-          <td>{{ a.job_category|default:"—" }}</td>
-          <td><span class="badge badge-{{ a.status|lower|slugify }}">{{ a.status }}</span></td>
-          <td style="font-size:12px;">{{ a.application_date|default:"—" }}</td>
-          <td class="fw-bold">₹{{ a.package_amount|floatformat:0 }}</td>
-          <td class="text-green">₹{{ a.amount_paid|floatformat:0 }}</td>
-          <td class="{% if a.balance > 0 %}text-red{% else %}text-green{% endif %} fw-bold">₹{{ a.balance|floatformat:0 }}</td>
-          <td><a href="{% url 'application_delete' a.pk %}" class="btn btn-danger btn-sm"
-               onclick="return confirm('Delete this application?')">🗑</a></td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📋</div><p>No applications found.</p></div></td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+
+<div class="table-responsive">
+
+<table>
+
+<thead>
+
+<tr>
+<th>Candidate</th>
+<th>Country</th>
+<th>Job</th>
+<th>Status</th>
+<th>App Date</th>
+<th>Package</th>
+<th>Paid</th>
+<th>Balance</th>
+<th>Actions</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for a in applications %}
+
+<tr>
+
+<td>
+<a href="{% url 'candidate_view' a.candidate.pk %}"
+style="color:var(--accent);font-weight:600;">
+{{ a.candidate.name }}
+</a>
+</td>
+
+<td>{{ a.country|default:"—" }}</td>
+
+<td>{{ a.job_category|default:"—" }}</td>
+
+<td>
+<span class="badge badge-{{ a.status|lower|slugify }}">
+{{ a.status }}
+</span>
+</td>
+
+<td>
+{{ a.application_date|default:"—" }}
+</td>
+
+<td class="fw-bold">
+₹{{ a.package_amount|floatformat:0 }}
+</td>
+
+<td class="text-green">
+₹{{ a.amount_paid|floatformat:0 }}
+</td>
+
+<td class="fw-bold
+{% if a.balance > 0 %}
+text-red
+{% else %}
+text-green
+{% endif %}
+">
+
+₹{{ a.balance|floatformat:0 }}
+
+</td>
+
+<td>
+
+<a href="{% url 'application_delete' a.pk %}"
+class="btn btn-danger btn-sm"
+onclick="return confirm('Delete this application?')">
+
+🗑
+
+</a>
+
+</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+
+<td colspan="9">
+
+<div class="empty-state">
+
+<div class="empty-icon">
+📋
 </div>
 
-<!-- Add Modal -->
-<div class="modal-overlay" id="addAppModal" style="display:none;">
-  <div class="modal-box">
-    <div class="modal-header">
-      <div class="modal-title">New Application</div>
-      <button class="modal-close" onclick="document.getElementById('addAppModal').style.display='none'">✕</button>
-    </div>
-    <form method="post" action="{% url 'application_add' %}">
-      {% csrf_token %}
-      <div class="modal-body">
-        <div class="form-row" style="margin-bottom:14px;">
-          <div><label class="form-label">Candidate *</label>
-            <select class="form-select" name="candidate" required>
-              <option value="">-- Select Candidate --</option>
-              {% for c in form.candidate.field.queryset %}<option value="{{ c.pk }}">{{ c.name }}</option>{% endfor %}
-            </select></div>
-          <div><label class="form-label">Destination Country</label>
-            <input class="form-control" name="country" placeholder="e.g. Qatar, UAE"></div>
-        </div>
-        <div class="form-row" style="margin-bottom:14px;">
-          <div><label class="form-label">Job Category</label>
-            <input class="form-control" name="job_category" placeholder="e.g. Driver, Nurse"></div>
-          <div><label class="form-label">Status</label>
-            <select class="form-select" name="status">
-              {% for val,lbl in form.fields.status.choices %}<option value="{{ val }}">{{ lbl }}</option>{% endfor %}
-            </select></div>
-        </div>
-        <div class="form-row" style="margin-bottom:14px;">
-          <div><label class="form-label">Application Date</label>
-            <input class="form-control" name="application_date" type="date" value="{% now 'Y-m-d' %}"></div>
-          <div><label class="form-label">Boarding Date</label>
-            <input class="form-control" name="boarding_date" type="date"></div>
-        </div>
-        <div class="form-row" style="margin-bottom:14px;">
-          <div><label class="form-label">Package Amount (₹)</label>
-            <input class="form-control" name="package_amount" type="number" placeholder="0"></div>
-          <div><label class="form-label">Amount Paid (₹)</label>
-            <input class="form-control" name="amount_paid" type="number" placeholder="0"></div>
-        </div>
-        <div><label class="form-label">Remarks</label>
-          <textarea class="form-control" name="remarks" rows="2" placeholder="Any notes..."></textarea></div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" onclick="document.getElementById('addAppModal').style.display='none'">Cancel</button>
-        <button type="submit" class="btn btn-primary">💾 Save Application</button>
-      </div>
-    </form>
-  </div>
+<p>No applications found</p>
+
 </div>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+
+<!-- ADD MODAL -->
+
+<div class="modal-overlay"
+id="addAppModal"
+style="display:none;">
+
+<div class="modal-box">
+
+<div class="modal-header">
+
+<div class="modal-title">
+New Application
+</div>
+
+<button class="modal-close"
+onclick="document.getElementById('addAppModal').style.display='none'">
+
+✕
+
+</button>
+
+</div>
+
+
+<form method="post"
+action="{% url 'application_add' %}">
+
+{% csrf_token %}
+
+<div class="modal-body">
+
+
+<div class="form-row">
+
+<div>
+
+<label class="form-label">
+Candidate *
+</label>
+
+<select class="form-select"
+name="candidate"
+required>
+
+<option value="">
+Select Candidate
+</option>
+
+{% for c in form.candidate.field.queryset %}
+
+<option value="{{ c.pk }}">
+{{ c.name }}
+</option>
+
+{% endfor %}
+
+</select>
+
+</div>
+
+
+<div>
+
+<label class="form-label">
+Destination Country
+</label>
+
+<input class="form-control"
+name="country">
+
+</div>
+
+</div>
+
+
+
+<div class="form-row">
+
+<div>
+
+<label class="form-label">
+Job Category
+</label>
+
+<input class="form-control"
+name="job_category">
+
+</div>
+
+<div>
+
+<label class="form-label">
+Status
+</label>
+
+<select class="form-select"
+name="status">
+
+{% for val,lbl in form.fields.status.choices %}
+
+<option value="{{ val }}">
+{{ lbl }}
+</option>
+
+{% endfor %}
+
+</select>
+
+</div>
+
+</div>
+
+
+
+<div class="form-row">
+
+<div>
+
+<label class="form-label">
+Application Date
+</label>
+
+<input class="form-control"
+name="application_date"
+type="date"
+value="{% now 'Y-m-d' %}">
+
+</div>
+
+<div>
+
+<label class="form-label">
+Boarding Date
+</label>
+
+<input class="form-control"
+name="boarding_date"
+type="date">
+
+</div>
+
+</div>
+
+
+
+<!-- PAYMENT -->
+
+<div class="form-row">
+
+<div>
+
+<label class="form-label">
+Package Amount ₹
+</label>
+
+<input class="form-control"
+type="number"
+name="package_amount"
+id="package"
+value="0">
+
+</div>
+
+
+<div>
+
+<label class="form-label">
+Amount Paid ₹
+</label>
+
+<input class="form-control"
+type="number"
+name="amount_paid"
+id="paid"
+value="0">
+
+</div>
+
+
+<div>
+
+<label class="form-label">
+Balance ₹
+</label>
+
+<input class="form-control"
+type="number"
+id="balance"
+readonly>
+
+</div>
+
+</div>
+
+
+
+<div>
+
+<label class="form-label">
+Remarks
+</label>
+
+<textarea class="form-control"
+name="remarks"
+rows="2">
+</textarea>
+
+</div>
+
+
+</div>
+
+
+<div class="modal-footer">
+
+<button type="button"
+class="btn btn-secondary"
+onclick="document.getElementById('addAppModal').style.display='none'">
+
+Cancel
+
+</button>
+
+<button type="submit"
+class="btn btn-primary">
+
+💾 Save Application
+
+</button>
+
+</div>
+
+</form>
+
+</div>
+
+</div>
+
 {% endblock %}
+
+
+
 {% block extra_js %}
+
 <script>
-document.getElementById('addAppModal').addEventListener('click',function(e){if(e.target===this)this.style.display='none';});
+
+function calculateBalance(){
+
+let packageAmount=
+parseFloat(
+document.getElementById("package").value
+) || 0;
+
+
+let paid=
+parseFloat(
+document.getElementById("paid").value
+) || 0;
+
+
+let balance=
+packageAmount - paid;
+
+
+document.getElementById("balance").value=
+balance;
+
+}
+
+
+document.getElementById("package")
+.addEventListener(
+"input",
+calculateBalance
+);
+
+
+document.getElementById("paid")
+.addEventListener(
+"input",
+calculateBalance
+);
+
+
+document.getElementById('addAppModal')
+.addEventListener(
+'click',
+function(e){
+
+if(e.target===this){
+
+this.style.display='none';
+
+}
+
+}
+);
+
 </script>
+
 {% endblock %}

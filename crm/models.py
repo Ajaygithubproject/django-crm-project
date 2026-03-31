@@ -227,3 +227,134 @@ class B2BClient(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+# for hotel booking
+class HotelBooking(models.Model):
+
+    candidate = models.ForeignKey(
+        Candidate,
+        on_delete=models.CASCADE,
+        related_name='hotel_bookings'
+    )
+
+    hotel_name = models.CharField(
+        max_length=200
+    )
+
+    city = models.CharField(
+        max_length=100,
+        blank=True
+    )
+
+    check_in = models.DateTimeField()
+
+    check_out = models.DateTimeField()
+
+    room_number = models.CharField(
+        max_length=50,
+        blank=True
+    )
+
+    booking_reference = models.CharField(
+        max_length=100,
+        blank=True
+    )
+
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0
+    )
+
+    amount_paid = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0
+    )
+
+    notes = models.TextField(
+        blank=True
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+
+    @property
+    def balance(self):
+
+        return self.amount - self.amount_paid
+
+
+    def __str__(self):
+
+        return f"{self.candidate.name} — {self.hotel_name}"
+
+
+    class Meta:
+
+        ordering = ['check_out']
+
+class FlightBooking(models.Model):
+
+    candidate = models.ForeignKey(
+        Candidate,
+        on_delete=models.CASCADE,
+        related_name='flight_bookings'
+    )
+
+    airline = models.CharField(
+        max_length=200
+    )
+
+    from_city = models.CharField(
+        max_length=100
+    )
+
+    to_city = models.CharField(
+        max_length=100
+    )
+
+    departure_date =models.DateTimeField()
+
+    arrival_date =models.DateTimeField()
+
+    ticket_number =models.CharField(
+        max_length=100,
+        blank=True
+    )
+
+    pnr =models.CharField(
+        max_length=100,
+        blank=True
+    )
+
+    amount =models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0
+    )
+
+    paid =models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0
+    )
+
+    reminder_sent = models.BooleanField(default=False)
+
+    notes =models.TextField(blank=True)
+
+    created_at =models.DateTimeField(auto_now_add=True)
+
+
+    @property
+    def balance(self):
+
+        return self.amount - self.paid
+
+
+    def __str__(self):
+
+        return f"{self.candidate.name} - {self.airline}"

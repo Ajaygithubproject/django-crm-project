@@ -512,3 +512,116 @@ def import_excel(request):
 
     messages.success(request, f'Imported {imported} candidates from Excel!')
     return redirect('candidates')
+
+from .models import HotelBooking,Candidate
+
+
+def hotel(request):
+
+    if request.method == "POST":
+
+        HotelBooking.objects.create(
+
+        candidate_id=
+        request.POST.get("candidate"),
+
+        hotel_name=
+        request.POST.get("hotel"),
+
+        city=
+        request.POST.get("city"),
+
+        check_in=
+        request.POST.get("checkin"),
+
+        check_out=
+        request.POST.get("checkout"),
+
+        amount=
+        request.POST.get("amount"),
+
+        amount_paid=
+        request.POST.get("paid")
+
+        )
+
+    bookings=HotelBooking.objects.all()
+
+    candidates=Candidate.objects.all()
+
+    return render(
+
+    request,
+
+    "crm/hotel.html",
+
+    {
+
+    "bookings":bookings,
+
+    "candidates":candidates
+
+    }
+
+    )
+
+from .models import FlightBooking
+
+
+def flight(request):
+
+    if request.method == "POST":
+
+        FlightBooking.objects.create(
+
+        candidate_id=
+        request.POST.get("candidate"),
+
+        airline=
+        request.POST.get("airline"),
+
+        from_city=
+        request.POST.get("from"),
+
+        to_city=
+        request.POST.get("to"),
+
+        departure_date=
+        request.POST.get("departure"),
+
+        arrival_date=
+        request.POST.get("arrival"),
+
+        ticket_number=
+        request.POST.get("ticket"),
+
+        pnr=
+        request.POST.get("pnr"),
+
+        amount=
+        request.POST.get("amount"),
+
+        paid=
+        request.POST.get("paid")
+
+        )
+
+    flights=FlightBooking.objects.all()
+
+    candidates=Candidate.objects.all()
+
+    return render(
+
+    request,
+
+    "crm/flight.html",
+
+    {
+
+    "flights":flights,
+    "candidates":candidates,
+    "page":"flight"
+
+    }
+
+    )
